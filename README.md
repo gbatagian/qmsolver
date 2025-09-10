@@ -175,3 +175,12 @@ solver.plot()
 - **Format code**: `make reformat` (runs black and isort)
 - **Run tests with coverage**: `make coverage`
 - **Create the virtual environment**: `make venv`
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**Important Notes:**
+- This is a personal project developed in my free time
+- No warranty is provided
+- For serious scientific work, please verify results independently and consult domain experts

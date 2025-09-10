@@ -13,6 +13,7 @@ black = {extras = ["jupyter"], version = "*"}
 isort = "*"
 jupyterlab = "*"
 coverage = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3"

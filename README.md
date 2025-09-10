@@ -19,15 +19,7 @@ pip install qmsolver
    cd qmsolver
    ```
 
-2. **Create and enter the virtual environment:**
-   * Install `pipenv` if not installed: `pip install pipenv`
-   * Create and enter the virtual environment
-        ```bash
-        pipenv install --dev
-        pipenv shell
-        ```
-
-3. **Install the source code:**
+2. **Install the source code:**
    ```bash
    pip install -e .
    ```
@@ -163,18 +155,20 @@ solver.plot()
 
 # Development
 
-## Quick start
+## Build and Test
 
 1. Build the package: `make build`
 2. Install in development mode: `make install-dev`
 3. Run the test suite: `make test`
 
-## Full Development Setup
+## Virtual Environment Setup
 
 1. **Python >= 3.9** should be installed
 2. **Pipenv** should be installed (if not: `pip install pipenv`)
 3. Create the virtual environment: `make venv`
 4. Run the test suite: `make test`
+
+> **⚠️ Important:** For development, it is recommended to build and test from within the virtual environment.
 
 ## Additional Development Commands
 

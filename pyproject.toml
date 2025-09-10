@@ -30,6 +30,14 @@ where = ["src"]
 
 [tool.black]
 line-length = 80
+extend-exclude = '''
+/(
+  \.venv
+  | \.git
+  | build
+  | dist
+)/
+'''
 
 [tool.isort]
 line_length = 80
@@ -37,3 +45,4 @@ force_single_line = true
 group_by_package = true
 src_paths = ["src"]
 profile = "black"
+skip_glob = ["**/.venv/**", "**/.git/**", "**/build/**", "**/dist/**"]

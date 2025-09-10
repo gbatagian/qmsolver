@@ -12,7 +12,11 @@ coverage:
 venv:
 	pipenv lock
 	pipenv install --dev
+	pipenv run pre-commit install
 	pipenv shell
+
+clean-venv:
+	pipenv --rm
 
 install-dev:
 	pip install -e .

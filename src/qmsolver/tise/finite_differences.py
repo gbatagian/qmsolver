@@ -160,23 +160,45 @@ class FDSolver:
             print(f"      E({i}) = {self.E_lowest[i]}")
         print("\n" + "*" * 40)
 
-    def plot(self, save_path=None):
+    def plot(
+        self,
+        save_path=None,
+        is_dimensionless: bool = True,
+        scale: float = 1.0,
+        energy_units: str = "dimensionless",
+    ):
+        """
+        Plots the eigenstates spectrum including potential energy, wavefunctions, and energy levels.
+
+        Parameters:
+        - save_path (str, optional): Path to save the plot image. If None, displays the plot.
+        - is_dimensionless (bool): Whether the units are dimensionless. Default is True.
+        - scale (float): Scaling factor for potential and energies when not dimensionless. Default is 1.0.
+        - energy_units (str): Units for energy labels. Default is "dimensionless".
+        """
         if self.E_lowest is None:
             print("Run the solve method to get a valid output.")
             return
 
         plt.figure(figsize=(10, 6))
 
-        plt.plot(self.x_grid, self.potential, color="black", linewidth=5)
+        potential = self.potential
+        E_lowest = self.E_lowest
+        if is_dimensionless is False:
+            potential = self.potential * scale
+            E_lowest = self.E_lowest * scale
+            energy_units = f"{energy_units}$\\cdot${scale**(-1)}"
+
+        plt.plot(self.x_grid, potential, color="black", linewidth=5)
 
         for i in range(self.n_lowest):
             renormalized_psi_values = (
                 self.Psi_lowest[:, i] / np.max(np.abs(self.Psi_lowest[:, i]))
-                + self.E_lowest[i]
+                + E_lowest[i]
             )
             plt.plot(self.x_grid, renormalized_psi_values)
             plt.axhline(
-                y=self.E_lowest[i],
+                y=E_lowest[i],
                 color=plt.gca().lines[-1].get_color(),
                 linestyle="--",
                 linewidth=1,
@@ -188,12 +210,12 @@ class FDSolver:
                 if i % 2 == 0
                 else self.x_min + 0.05 * (self.x_max - self.x_min)
             )
-            y_text = self.E_lowest[i] + 0.02 * (plt.ylim()[1] - plt.ylim()[0])
+            y_text = E_lowest[i] + 0.02 * (plt.ylim()[1] - plt.ylim()[0])
             line_color = plt.gca().lines[-1].get_color()
             plt.text(
                 x_text,
                 y_text,
-                f"$E_{{{i}}}$ = {round(self.E_lowest[i], 5)}",
+                f"$E_{{{i}}}$ = {round(E_lowest[i], 5)}{'' if is_dimensionless else f' {energy_units}'}",
                 color=line_color,
                 fontsize=8,
                 ha="center",
@@ -205,17 +227,31 @@ class FDSolver:
             )
 
         plt.title("Eigenstates Spectrum")
-        plt.xlabel("Position (m)", fontsize=14)
-        plt.ylabel(r"Renormalized Wavefunction ($m^{-1/2}$)", fontsize=14)
+        plt.xlabel(
+            "Position (l.u.)" if is_dimensionless else "Position (m)",
+            fontsize=14,
+        )
+        plt.ylabel(
+            (
+                r"Renormalized Wavefunction ($l.u.^{-1/2}$)"
+                if is_dimensionless
+                else r"Renormalized Wavefunction ($m^{-1/2}$)"
+            ),
+            fontsize=14,
+        )
         ax = plt.gca()
         ax2 = ax.twinx()
-        ax2.set_ylabel("Potential Energy (dimensionless units)", fontsize=14)
+        ax2.set_ylabel(f"Potential Energy ({energy_units})", fontsize=14)
         ax2.set_ylim(ax.get_ylim())
         ax2.get_yaxis().set_visible(True)
-        ax.set_yticklabels([])
         ax.xaxis.set_minor_locator(plt.MultipleLocator(1))
         plt.grid(True, which="major", linestyle="--", linewidth=0.5)
         plt.tight_layout()
+
+        if is_dimensionless:
+            plt.figtext(
+                0.01, 0.01, "* l.u. - length units", ha="left", fontsize=10
+            )
 
         if save_path:
             plt.savefig(save_path, dpi=150, bbox_inches="tight")

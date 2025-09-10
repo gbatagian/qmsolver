@@ -67,6 +67,36 @@ This will generate a plot showing the potential (black line) and the first few e
 
 ![Finite Square Well Example](outputs/finite_square_well.png)
 
+> **Note:** You can customize the physical constants by setting the `solver.h_bar` and `solver.m` attributes to your desired values before calling `solver.solve()`. By default, they are set to 1 (dimensionless units). For more information on using SI units, see the [SI Units](#si-units) section.
+
+* After calling `solver.solve()`, the solver will have the `E_lowest` attribute containing the n-lowest eigenenergies and the `Psi_lowest` attribute containing the corresponding eigenfunctions.
+    ```python
+    solver.E_lowest
+    ```
+    ```bash
+    array([-24.05543837, -21.24089737, -16.62404645, -10.37013369,
+            -2.99998256,   0.28540549])
+    ```
+
+    ```python
+    solver.Psi_lowest 
+    ```
+    ```bash
+    array([[ 7.72546314e-16, -7.70210475e-15,  2.04525254e-13,
+            2.68267151e-11,  7.52877452e-08,  1.30754252e-04],
+        [ 1.54602276e-15, -1.54123977e-14,  4.09220681e-13,
+            5.36673540e-11,  1.50586795e-07,  2.61506636e-04],
+        [ 2.32136057e-15, -2.31390756e-14,  6.14256593e-13,
+            8.05358477e-11,  2.25908455e-07,  3.92255285e-04],
+        ...,
+        [ 2.32136057e-15,  2.31390756e-14,  6.14256593e-13,
+            -8.05358477e-11,  2.25908455e-07, -3.92255285e-04],
+        [ 1.54602276e-15,  1.54123977e-14,  4.09220681e-13,
+            -5.36673540e-11,  1.50586795e-07, -2.61506636e-04],
+        [ 7.72546314e-16,  7.70210475e-15,  2.04525254e-13,
+            -2.68267151e-11,  7.52877452e-08, -1.30754252e-04]],
+        shape=(2000, 6))
+    ```
 ## Method Limitations
 
 The finite difference method is well-suited for computing **bound states** of quantum systems, but has some limitations for **unbound states** (scattering or continuum states).
@@ -152,6 +182,81 @@ solver.plot()
 ```
 
 ![Sinusoidal Well Example](outputs/sinusoidal_well.png)
+
+# SI Units
+
+By default, `FDSolver` solves the Schrödinger equation in dimensionless units. However, it is also possible to perform the calculations in **SI units**. To use SI units:
+
+1. Express the potential energy in Joules and the spatial grid in meters.
+2. Set the `h_bar` and `m` attributes of the solver to their SI values (e.g. using `scipy.constants`).
+
+Below follows an example for an electron in a finite square well:
+
+```python
+import numpy as np
+from scipy import constants
+from qmsolver.tise import FDSolver
+from qmsolver.potentials import FiniteSquareWellPotential
+
+well_depth_ev = 1.0     # Well depth in electron volts
+well_width_nm = 1.0     # Well width in nanometers
+
+# Convert to SI units
+well_depth_joules = well_depth_ev * constants.e     # Convert eV to Joules
+well_width_meters = well_width_nm * 1e-9            # Convert nm to meters
+
+# Spatial domain in meters
+x_min_m = -3e-9
+x_max_m = 3e-9
+
+solver = FDSolver(steps=2_000, x_min=x_min_m, x_max=x_max_m, n_lowest=3)
+
+# Set physical constants in SI units
+solver.h_bar = constants.hbar  # Reduced Planck's constant in J⋅s
+solver.m = constants.m_e       # Electron mass in kg
+
+potential = FiniteSquareWellPotential(
+    x_grid=solver.x_grid,
+    well_depth=well_depth_joules,
+    well_width=well_width_meters,
+)
+solver.potential_generator = potential
+
+solver.solve()
+solver.output()
+solver.plot(is_dimensionless=False, scale=1e19, energy_units="J")
+```
+
+```bash
+****************************************
+
+-> 3 lowest energy states:
+
+      E(0) = -1.297613251785845e-19
+      E(1) = -4.7950999500587644e-20
+      E(2) = 7.54877077796044e-21
+
+****************************************
+```
+
+![SI Units Example](outputs/finite_square_well_SI_units.png)
+
+# Convert to eV
+
+After solving in SI units, simply divide the eigenenergies by the electron charge to get values in eV:
+
+```python
+E_lowest_ev = np.array(solver.E_lowest) / constants.e
+print("\nEnergies in electron volts:")
+for i, energy in enumerate(E_lowest_ev):
+    print(f"E({i}) = {energy:.8f} eV")
+```
+```bash
+Energies in electron volts:
+E(0) = -0.80990649 eV
+E(1) = -0.29928660 eV
+E(2) = 0.04711572 eV
+```
 
 # Development
 

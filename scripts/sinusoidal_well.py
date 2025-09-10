@@ -37,4 +37,4 @@ potential = SinusoidalWellPotential(x_grid=solver.x_grid, amplitude=5.0)
 solver.potential_generator = potential
 solver.solve()
 solver.output()
-solver.plot()
+solver.plot(save_path="outputs/sinusoidal_well.png")

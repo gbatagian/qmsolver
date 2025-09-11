@@ -289,3 +289,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - This is a personal project developed in my free time
 - No warranty is provided
 - For serious scientific work, please verify results independently and consult domain experts
+
+## References
+
+1. [A Python Program for Solving Schrödinger's Equation in Undergraduate Physical Chemistry](https://pubs.acs.org/doi/10.1021/acs.jchemed.7b00003)  
+   Matthew N. Srnec, Shiv Upadhyay, Jeffry D. Madura  
+   *Journal of Chemical Education*, Vol 94/Issue 6, 2017
+
+2. Computational Quantum Mechanics  
+   Joshua Izaac, Jingbo Wang  
+   Springer, Chapter 9.6: The Direct Matrix Method

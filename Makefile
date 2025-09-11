@@ -23,9 +23,3 @@ install-dev:
 
 build:
 	python -m build
-
-check-build:
-	python -m twine check dist/*
-
-upload-test:
-	python -m twine upload --repository testpypi dist/*

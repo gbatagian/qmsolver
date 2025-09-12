@@ -16,11 +16,11 @@ class MultipleSquareWellPotential(BasePotential):
         Multiple square well potential (superlattice): Periodic array of finite square wells.
 
         Parameters:
-        - x_grid: Spatial grid points
-        - well_depth: Depth of each well (V0 > 0, so potential is -V0 inside wells)
-        - well_width: Width of each well
-        - separation: Distance between centers of adjacent wells
-        - num_wells: Number of wells to create
+        - x_grid (np.array): Spatial grid points
+        - well_depth (float): Depth of each well (V0 > 0, so potential is -V0 inside wells)
+        - well_width (float): Width of each well
+        - separation (float): Distance between centers of adjacent wells
+        - num_wells (int): Number of wells to create
         """
         self.x_grid = x_grid
         self.well_depth = well_depth

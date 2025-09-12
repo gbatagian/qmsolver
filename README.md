@@ -103,9 +103,9 @@ The finite difference method is well-suited for computing **bound states** of qu
 
 The numerical implementation imposes **zero boundary conditions** at the edges of the spatial grid (**x_min** and **x_max**). This effectively encloses the system within an **infinite square well** of width (x_max - x_min), which introduces artificial quantization of the continuum energy spectrum.
 
-For bound states, the wave functions decay exponentially to zero outside the potential region. Since they naturally satisfy the zero boundary conditions at the grid edges, the computed energies and wave functions are largely unaffected by the grid size, provided the grid extends sufficiently far to capture the exponential tail.
+For bound states, the wave functions decay exponentially to zero outside the well region. Since they naturally satisfy the zero boundary conditions at the grid edges, the computed energies and wave functions are largely unaffected by the grid size, provided the grid extends sufficiently far to capture the exponential tail.
 
-For scattering states, the wave functions oscillate and do not decay to zero. The artificial boundary conditions at the grid edges cause **reflection** of the wave function, creating standing waves that depend on the grid length. This leads to:
+For scattering/continuum states, the wave functions oscillate and do not decay to zero. The artificial boundary conditions at the grid edges cause **reflection** of the wave function, creating standing waves that depend on the grid length. This leads to:
   - **Quantization** of the continuum spectrum
   - **Grid-dependent** energy levels and wave functions
 
@@ -292,10 +292,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## References
 
-1. [A Python Program for Solving Schrödinger's Equation in Undergraduate Physical Chemistry](https://pubs.acs.org/doi/10.1021/acs.jchemed.7b00003)  
-   Matthew N. Srnec, Shiv Upadhyay, Jeffry D. Madura  
-   *Journal of Chemical Education*, Vol 94/Issue 6, 2017
-
-2. Computational Quantum Mechanics  
+1. Computational Quantum Mechanics  
    Joshua Izaac, Jingbo Wang  
    Springer, Chapter 9.6: The Direct Matrix Method
+
+2. Solving the time-dependent Schrödinger equation using finite difference methods  
+   R. Becerril, F.S. Guzmán, A. Rendón-Romero, S. Valdez-Alvarado  
+   *Revista Mexicana de Física E*, Vol. 54, No. 2, pp. 120-132, 2008
+
+3. [A Python Program for Solving Schrödinger's Equation in Undergraduate Physical Chemistry](https://pubs.acs.org/doi/10.1021/acs.jchemed.7b00003)  
+   Matthew N. Srnec, Shiv Upadhyay, Jeffry D. Madura  
+   *Journal of Chemical Education*, Vol 94/Issue 6, 2017

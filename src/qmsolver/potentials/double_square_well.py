@@ -18,13 +18,13 @@ class DoubleSquareWellPotential(BasePotential):
         Double well potential: Two finite square wells with customizable depths, centers, and widths.
 
         Parameters:
-        - x_grid: Spatial grid points
-        - well_1_depth: Depth of the first well (V0 > 0, so potential is -V0 inside well)
-        - well_1_center: Center position of the first well
-        - well_1_width: Width of the first well
-        - well_2_depth: Depth of the second well (V0 > 0, so potential is -V0 inside well)
-        - well_2_center: Center position of the second well
-        - well_2_width: Width of the second well
+        - x_grid (np.array): Spatial grid points
+        - well_1_depth (float): Depth of the first well (V0 > 0, so potential is -V0 inside well)
+        - well_1_center (float): Center position of the first well
+        - well_1_width (float): Width of the first well
+        - well_2_depth (float): Depth of the second well (V0 > 0, so potential is -V0 inside well)
+        - well_2_center (float): Center position of the second well
+        - well_2_width (float): Width of the second well
         """
         self.x_grid = x_grid
         self.well_1_center = well_1_center

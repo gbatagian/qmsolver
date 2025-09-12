@@ -16,9 +16,9 @@ class FDSolver:
         Solves the time-independent Schrödinger equation using finite differences.
 
         Parameters:
-        - steps: Number of grid points
-        - x_min, x_max: Spatial domain
-        - n_lowest: Number of lowest energy states to compute
+        - steps (int): Number of grid points
+        - x_min, x_max (float): Spatial domain
+        - n_lowest (int): Number of lowest energy states to compute
         """
         if x_min >= x_max:
             raise ValueError("x_min must be less than x_max.")
@@ -108,11 +108,17 @@ class FDSolver:
         Returns the Hamiltonian matrix for a free particle using the finite difference method.
         The matrix form is derived based on the equation:
 
-            - (ħ^2 / 2m) * (ψ_{j+1} - 2ψ_j + ψ_{j-1}) / Δx^2 + V_j * ψ_j = E * ψ_j + O(Δx^2),  j = 1, 2, ..., N-2
+            - (ħ^2 / 2m) * (ψ_{j+1} - 2ψ_j + ψ_{j-1}) / Δx^2 = E * ψ_j + O(Δx^2) =
 
-        where the finite difference approximation is used for the second derivative.
-        This results in a tridiagonal matrix with 2*k on the diagonal and -k on the off-diagonals, with k = ħ^2 / 2mΔx^2.
+            = k * (-ψ_{j+1} + 2ψ_j - ψ_{j-1}) = E * ψ_j + O(Δx^2)
 
+            where,
+                k = ħ^2 / 2mΔx^2
+                j = 1, 2, ..., N-1
+
+        This formula is derived from the Schrödinger equation with the finite difference approximation
+        used for the second derivative. This results in a tridiagonal matrix with 2*k on the diagonal
+        and -k on the off-diagonals.
         """
         return (
             2 * self.k * np.diag(np.ones(self.steps))
@@ -131,6 +137,15 @@ class FDSolver:
     def H_matrix(self) -> np.ndarray:
         """
         Returns the full Hamiltonian matrix, which is the sum of the kinetic and potential energy matrices.
+        The form of the matrix is derived based on the equation:
+
+            - (ħ^2 / 2m) * (ψ_{j+1} - 2ψ_j + ψ_{j-1}) / Δx^2 + V_j * ψ_j = E * ψ_j + O(Δx^2) =
+
+            =  - k * ψ_{j+1} + (2k + V_j) ψ_j - k * ψ_{j-1} = E * ψ_j + O(Δx^2)
+
+            where,
+                k = ħ^2 / 2mΔx^2
+                j = 1, 2, ..., N-1
         """
         return (
             self.get_kinetic_energy_matrix_form()
@@ -139,6 +154,13 @@ class FDSolver:
 
     @lru_cache
     def solve(self) -> None:
+        """
+        Solves the time-independent Schrödinger equation by computing the eigenvalues and eigenvectors
+        of the Hamiltonian matrix.
+
+        This method populates the `E_lowest` and `Psi_lowest` attributes with the `n_lowest` lowest
+        energy eigenvalues and corresponding eigenvectors, sorted in ascending order.
+        """
         e_all, psi_all = sp.linalg.eigh(self.H_matrix)
 
         # Sort eigenvalues and corresponding eigenvectors
@@ -150,6 +172,9 @@ class FDSolver:
         self.Psi_lowest = psi_all[:, : self.n_lowest]
 
     def output(self):
+        """
+        Prints the computed lowest energy eigenvalues to the console.
+        """
         if self.E_lowest is None:
             print("Run the solve method to get a valid output.")
             return
@@ -168,7 +193,7 @@ class FDSolver:
         energy_units: str = "dimensionless",
     ):
         """
-        Plots the eigenstates spectrum including potential energy, wavefunctions, and energy levels.
+        Plots the eigenstates spectrum including potential energy, wavefunctions and energy levels.
 
         Parameters:
         - save_path (str, optional): Path to save the plot image. If None, displays the plot.

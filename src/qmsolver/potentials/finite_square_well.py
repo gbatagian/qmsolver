@@ -9,9 +9,9 @@ class FiniteSquareWellPotential(BasePotential):
         Finite square well potential: V(x) = -V0 for |x| < a/2, 0 otherwise
 
         Parameters:
-        - x_grid: Spatial grid points
-        - well_depth: Depth of the well (V0 > 0)
-        - well_width: Width of the well (a)
+        - x_grid (np.array): Spatial grid points
+        - well_depth (float): Depth of the well (V0 > 0)
+        - well_width (float): Width of the well (a)
         """
         self.x_grid = x_grid
         self.well_depth = well_depth

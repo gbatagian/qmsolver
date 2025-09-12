@@ -11,9 +11,9 @@ class HarmonicOscillatorPotential(BasePotential):
         Harmonic oscillator potential: V(x) = 0.5 * k * x^2
 
         Parameters:
-        - x_grid: Spatial grid points
-        - spring_constant: Spring constant k (or can use frequency via k = m*ω^2)
-        - mass: Particle mass (default 1.0 for dimensionless units)
+        - x_grid (np.array): Spatial grid points
+        - spring_constant (float): Spring constant k (or can use frequency via k = m*ω^2)
+        - mass (float): Particle mass (default 1.0 for dimensionless units)
         """
         self.x_grid = x_grid
         self.spring_constant = spring_constant
@@ -35,6 +35,14 @@ class HarmonicOscillatorPotential(BasePotential):
         """
         Create harmonic oscillator potential from frequency ω.
         V(x) = 0.5 * m * ω^2 * x^2
+
+        Parameters:
+        - x_grid (np.array): Spatial grid points
+        - frequency (float): Angular frequency ω
+        - mass (float): Particle mass (default 1.0 for dimensionless units)
+
+        Returns:
+            HarmonicOscillatorPotential: Instance with appropriate spring constant
         """
         spring_constant = mass * frequency**2
         return cls(x_grid, spring_constant, mass)

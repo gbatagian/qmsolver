@@ -8,11 +8,11 @@ class PoschlTellerPotential(BasePotential):
         """
         Pöschl-Teller potential hole:
 
-            V(x) = -λ(λ + 1)/2 * sech²(x/width) = -λ(λ + 1)/(2 * cosh²(x/width))
+            V(x) = -λ(λ + 1)/2 * sech²(x) = -λ(λ + 1)/(2 * cosh²(x))
 
         Parameters:
-        - x_grid: Spatial grid points
-        - lambda_: Dimensionless parameter controlling the well depth and number of bound states
+        - x_grid (np.array): Spatial grid points
+        - lambda_ (float): Dimensionless parameter controlling the well depth and number of bound states
         """
         self.x_grid = x_grid
         self.lambda_ = lambda_
@@ -21,7 +21,7 @@ class PoschlTellerPotential(BasePotential):
         """
         Generate the symmetric Pöschl-Teller potential array.
         Returns:
-            np.array: Array of potential values, -λ(λ + 1)/(2 * cosh²(x/width))
+            np.array: Array of potential values, -λ(λ + 1)/(2 * cosh²(x))
         """
         return -(self.lambda_ * (self.lambda_ + 1)) / (
             2 * np.cosh(self.x_grid) ** 2

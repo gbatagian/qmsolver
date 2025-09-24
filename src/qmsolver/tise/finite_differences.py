@@ -40,6 +40,10 @@ class FDSolver:
         self.E_lowest: list[float] | None = None
         self.Psi_lowest: np.array[np.array] | None = None
 
+        # Initialize attributes to store  eigenvalues and eigenvectors of bound energy states
+        self.E_bound: list[float] | None = None
+        self.Psi_bound: np.array[np.array] | None = None
+
     @property
     def potential_generator(self) -> BasePotential:
         """
@@ -66,6 +70,14 @@ class FDSolver:
             self._potential = self.potential_generator.generate()
 
         return self._potential
+
+    @cached_property
+    def _v_asymptotic(self):
+        """Returns the minimum value between the first and last elements of the potential array,
+        representing the asymptotic potential energy at the boundaries of the domain.
+        """
+
+        return min(self._potential[0], self._potential[-1])
 
     @property
     def h_bar(self) -> float:
@@ -168,8 +180,14 @@ class FDSolver:
         e_all = e_all[sort_idx]
         psi_all = psi_all[:, sort_idx]
 
+        # Select n-lowest eigenstates
         self.E_lowest = e_all[: self.n_lowest]
         self.Psi_lowest = psi_all[:, : self.n_lowest]
+
+        # Select bound states, i.e. eigenstates with E < V_asymptotic where V_asymptotic is the min potential
+        # value at the grid edges (towards infinity). For these states the wavefunctions decay exponentially toward the boundaries
+        self.E_bound = self.E_lowest[self.E_lowest < self._v_asymptotic]
+        self.Psi_bound = self.Psi_lowest[:, : len(self.E_bound)]
 
     def output(self):
         """
@@ -181,8 +199,22 @@ class FDSolver:
 
         print("*" * 40 + "\n")
         print(f"-> {self.n_lowest} lowest energy states:\n")
-        for i in range(self.n_lowest):
-            print(f"      E({i}) = {self.E_lowest[i]}")
+        for i, e in enumerate(self.E_lowest):
+            if e < self._v_asymptotic:
+                stat_type = "(bound)"
+                state_icon = "🔒"
+            else:
+                stat_type = "(free)"
+                state_icon = "🌊"
+
+            if abs(e) < 1e-10 or abs(e) > 1e10:
+                energy_str = f"{e:15.8e}"
+            else:
+                energy_str = f"{e:15.10f}"
+
+            print(
+                f"      {f'{state_icon}':<3} {f'E({i})':<5} = {energy_str}  {f'{stat_type}':<7}"
+            )
         print("\n" + "*" * 40)
 
     def plot(
@@ -208,22 +240,23 @@ class FDSolver:
         plt.figure(figsize=(10, 6))
 
         potential = self.potential
-        E_lowest = self.E_lowest
+        E_bound = self.E_bound
+
         if is_dimensionless is False:
             potential = self.potential * scale
-            E_lowest = self.E_lowest * scale
+            E_bound = E_bound * scale
             energy_units = f"{energy_units}$\\cdot${scale**(-1)}"
 
         plt.plot(self.x_grid, potential, color="black", linewidth=5)
 
-        for i in range(self.n_lowest):
+        for i in range(len(E_bound)):
             renormalized_psi_values = (
-                self.Psi_lowest[:, i] / np.max(np.abs(self.Psi_lowest[:, i]))
-                + E_lowest[i]
+                self.Psi_bound[:, i] / np.max(np.abs(self.Psi_bound[:, i]))
+                + E_bound[i]
             )
             plt.plot(self.x_grid, renormalized_psi_values)
             plt.axhline(
-                y=E_lowest[i],
+                y=E_bound[i],
                 color=plt.gca().lines[-1].get_color(),
                 linestyle="--",
                 linewidth=1,
@@ -235,12 +268,12 @@ class FDSolver:
                 if i % 2 == 0
                 else self.x_min + 0.05 * (self.x_max - self.x_min)
             )
-            y_text = E_lowest[i] + 0.02 * (plt.ylim()[1] - plt.ylim()[0])
+            y_text = E_bound[i] + 0.02 * (plt.ylim()[1] - plt.ylim()[0])
             line_color = plt.gca().lines[-1].get_color()
             plt.text(
                 x_text,
                 y_text,
-                f"$E_{{{i}}}$ = {round(E_lowest[i], 5)}{'' if is_dimensionless else f' {energy_units}'}",
+                f"$E_{{{i}}}$ = {round(E_bound[i], 5)}{'' if is_dimensionless else f' {energy_units}'}",
                 color=line_color,
                 fontsize=8,
                 ha="center",
@@ -251,7 +284,7 @@ class FDSolver:
                 ),
             )
 
-        plt.title("Eigenstates Spectrum")
+        plt.title("Bound States Spectrum")
         plt.xlabel(
             "Position (l.u.)" if is_dimensionless else "Position (m)",
             fontsize=14,

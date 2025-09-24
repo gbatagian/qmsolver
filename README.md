@@ -1,6 +1,6 @@
 # QMSolver
 
-**QMSolver** is a Python library for numerically solving the time-independent Schrödinger equation in one dimension. The library implements the finite difference method to compute energy eigenvalues and eigenfunctions for quantum mechanical systems with arbitrary potential energy functions.
+**QMSolver** is a Python library for numerically solving the time-independent Schrödinger equation in one dimension. The library implements the finite differences method to compute energy eigenvalues and eigenfunctions for quantum mechanical systems with arbitrary potential energy functions.
 
 ## Installation
 
@@ -49,23 +49,25 @@ solver.plot()
 
 -> 7 lowest energy states:
 
-      E(0) = -24.055438366060855
-      E(1) = -21.24089736975921
-      E(2) = -16.62404645487225
-      E(3) = -10.37013368913339
-      E(4) = -2.999982564365393
-      E(5) = 0.2854054853290151
-      E(6) = 0.3280462337486476
+      🔒   E(0)  =  -24.0554383661  (bound)
+      🔒   E(1)  =  -21.2408973698  (bound)
+      🔒   E(2)  =  -16.6240464549  (bound)
+      🔒   E(3)  =  -10.3701336891  (bound)
+      🔒   E(4)  =   -2.9999825644  (bound)
+      🌊   E(5)  =    0.2854054853  (free) 
+      🌊   E(6)  =    0.3280462337  (free) 
 
 ****************************************
 ```
 
 > **⚠️ Attention:** The `FiniteSquareWellPotential` class requires a spatial grid as input. It is recommended to provide the `x_grid` of the solver to ensure the potential and solver use the same grid.
 
-This will generate a plot showing the potential (black line) and the first few energy eigenstates:
+This will generate a plot showing the potential (black line) and the first few bound eigenstates:
 
 
 ![Finite Square Well Example](outputs/finite_square_well.png)
+
+> **Note:** The `plot()` method only displays **bound states** (i.e. $E < V_{asymptotic}$, where $V_{asymptotic}$ is the min value at the boundaries), as these are the physically meaningful solutions under the finite differences method. Free states are affected by the zero boundary conditions which result grid-dependent "artificial quantization" of the continuum energy spectrum. For more information, see the [Method Limitations](#method-limitations) section
 
 > **Note:** You can customize the physical constants by setting the `solver.h_bar` and `solver.m` attributes to your desired values before calling `solver.solve()`. By default, they are set to 1 (dimensionless units). For more information on using SI units, see the [SI Units](#si-units) section.
 
@@ -74,8 +76,7 @@ This will generate a plot showing the potential (black line) and the first few e
     solver.E_lowest
     ```
     ```bash
-    array([-24.05543837, -21.24089737, -16.62404645, -10.37013369,
-            -2.99998256,   0.28540549])
+    array([-24.05543837, -21.24089737, -16.62404645, -10.37013369, -2.99998256, 0.28540549])
     ```
 
     ```python
@@ -97,19 +98,46 @@ This will generate a plot showing the potential (black line) and the first few e
             -2.68267151e-11,  7.52877452e-08, -1.30754252e-04]],
         shape=(2000, 6))
     ```
+
+* Additionally, the solver provides `E_bound` and `Psi_bound` attributes containing only the bound states:
+    ```python
+    solver.E_bound
+    ```
+    ```bash
+    array([-24.05543837, -21.24089737, -16.62404645, -10.37013369, -2.99998256])
+    ```
+
+    ```python
+    solver.Psi_bound
+    ```
+    ```bash
+    array([[ 7.72546314e-16, -7.70210475e-15,  2.04525254e-13,
+             2.68267151e-11,  7.52877452e-08],
+        [ 1.54602276e-15, -1.54123977e-14,  4.09220681e-13,
+             5.36673540e-11,  1.50586795e-07],
+        [ 2.32136057e-15, -2.31390756e-14,  6.14256593e-13,
+             8.05358477e-11,  2.25908455e-07],
+        ...,
+        [ 2.32136057e-15,  2.31390756e-14,  6.14256593e-13,
+            -8.05358477e-11,  2.25908455e-07],
+        [ 1.54602276e-15,  1.54123977e-14,  4.09220681e-13,
+            -5.36673540e-11,  1.50586795e-07],
+        [ 7.72546314e-16,  7.70210475e-15,  2.04525254e-13,
+            -2.68267151e-11,  7.52877452e-08]], shape=(2000, 5))
+    ```
 ## Method Limitations
 
-The finite difference method is well-suited for computing **bound states** of quantum systems, but has some limitations for **unbound states** (scattering or continuum states).
+The finite difference method is well-suited for computing **bound states** of quantum systems, but has some limitations for **free states** (scattering or continuum states).
 
 The numerical implementation imposes **zero boundary conditions** at the edges of the spatial grid (**x_min** and **x_max**). This effectively encloses the system within an **infinite square well** of width (x_max - x_min), which introduces artificial quantization of the continuum energy spectrum.
 
-For bound states, the wave functions decay exponentially to zero outside the well region. Since they naturally satisfy the zero boundary conditions at the grid edges, the computed energies and wave functions are largely unaffected by the grid size, provided the grid extends sufficiently far to capture the exponential tail.
+For bound states, the wavefunctions decay exponentially to zero outside the well region. Since they naturally satisfy the zero boundary conditions at the grid edges, the computed energies and wave functions are unaffected by the grid size, provided the grid extends sufficiently far to capture the exponential decaying tail.
 
-For scattering/continuum states, the wave functions oscillate and do not decay to zero. The artificial boundary conditions at the grid edges cause **reflection** of the wave function, creating standing waves that depend on the grid length. This leads to:
+For free states, the wavefunctions oscillate and do not decay to zero. The artificial boundary conditions at the grid edges cause **reflection** of the wavefunction, creating standing waves that depend on the grid length. This leads to:
   - **Quantization** of the continuum spectrum
-  - **Grid-dependent** energy levels and wave functions
+  - **Grid-dependent** energy levels and wavefunctions
 
-`FDSolver` is better-suited for bound state problems and provides reliable results within that domain - as long as the grid extends sufficiently beyond the potential region to minimize boundary effects. For scattering states, the numerical solutions behave as if the system is confined within an infinite potential well, with complete wave function reflection at the grid boundaries, leading to quantization of the continuum energy spectrum. 
+`FDSolver` is better-suited for bound state problems and provides reliable results within that domain - as long as the grid extends sufficiently beyond the potential region to minimize boundary effects. For free states, the numerical solutions behave as if the system is confined within an infinite potential well, with complete wavefunction reflection at the grid boundaries, leading to quantization of the continuum energy spectrum. 
 
 ## Custom Potential Implementation
 
@@ -133,7 +161,14 @@ from qmsolver.tise.finite_differences import FDSolver
 
 class SinusoidalWellPotential(BasePotential):
     """
-    A sinusoidal potential well: V(x) = -A * |sin(x)| for |x| ≤ π, 0 otherwise
+    A composite sinusoidal potential with well and barrier regions:
+
+        V(x) = A/2 + V_well(x) + V_barrier(x)
+
+    where:
+        - V_well(x)    = -A * |sin(x)| for      |x| ≤ π          , else 0
+        - V_barrier(x) =  A * |sin(x)| for  π < |x| ≤ (5/6 + 2)π , else 0
+        - A/2                          for      |x| > (5/6 + 2)π , else 0
     """
 
     def __init__(self, x_grid: np.array, amplitude: float) -> None:
@@ -152,31 +187,55 @@ class SinusoidalWellPotential(BasePotential):
         Returns:
             np.array: Potential energy values on the grid
         """
-        return np.where(
-            np.abs(self.x_grid) <= np.pi,
-            -self.amplitude * np.abs(np.sin(self.x_grid)),
-            0.0,
+        return (
+            np.where(
+                np.abs(self.x_grid) <= np.pi,
+                -self.amplitude * np.abs(np.sin(self.x_grid)),
+                0,
+            )
+            + np.where(
+                (np.abs(self.x_grid) >= np.pi)
+                & (np.abs(self.x_grid) <= (5 / 6 + 2) * np.pi),
+                self.amplitude * np.abs(np.sin(self.x_grid)),
+                0,
+            )
+            + np.where(
+                np.abs(self.x_grid) >= (5 / 6 + 2) * np.pi,
+                self.amplitude / 2,
+                0,
+            )
         )
 
 
-solver = FDSolver(steps=2000, x_min=-10, x_max=10, n_lowest=5)
-potential = SinusoidalWellPotential(x_grid=solver.x_grid, amplitude=5.0)
+solver = FDSolver(steps=2000, x_min=-4 * np.pi, x_max=4 * np.pi, n_lowest=15)
+potential = SinusoidalWellPotential(x_grid=solver.x_grid, amplitude=5)
 solver.potential_generator = potential
 solver.solve()
 solver.output()
 solver.plot()
+
 ```
 
 ```bash
 ****************************************
 
--> 5 lowest energy states:
+-> 15 lowest energy states:
 
-      E(0) = -3.9325130490544944
-      E(1) = -3.9007355756749442
-      E(2) = -1.9743485404975893
-      E(3) = -1.709360959487448
-      E(4) = -0.2899193058335374
+      🔒   E(0)  =   -3.9318637166  (bound)
+      🔒   E(1)  =   -3.9000190100  (bound)
+      🔒   E(2)  =   -1.9641284920  (bound)
+      🔒   E(3)  =   -1.6914279178  (bound)
+      🔒   E(4)  =   -0.1694428666  (bound)
+      🔒   E(5)  =    0.5585681892  (bound)
+      🔒   E(6)  =    1.8412337091  (bound)
+      🔒   E(7)  =    2.2651012660  (bound)
+      🔒   E(8)  =    2.2653605113  (bound)
+      🌊   E(9)  =    2.7548549836  (free) 
+      🌊   E(10) =    2.7548579298  (free) 
+      🌊   E(11) =    2.7970433115  (free) 
+      🌊   E(12) =    3.4976640375  (free) 
+      🌊   E(13) =    3.4976741598  (free) 
+      🌊   E(14) =    3.9044940884  (free) 
 
 ****************************************
 ```
@@ -232,9 +291,9 @@ solver.plot(is_dimensionless=False, scale=1e19, energy_units="J")
 
 -> 3 lowest energy states:
 
-      E(0) = -1.297613251785845e-19
-      E(1) = -4.7950999500587644e-20
-      E(2) = 7.54877077796044e-21
+      🔒   E(0)  = -1.29761325e-19  (bound)
+      🔒   E(1)  = -4.79509995e-20  (bound)
+      🌊   E(2)  =  7.54877078e-21  (free) 
 
 ****************************************
 ```

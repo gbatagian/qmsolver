@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qmsolver"
-version = "0.1.2"
+version = "0.1.4"
 description = "A quantum mechanics solver library"
 authors = [{name = "Georgios Batagiannis", email = "gbatagian@gmail.com"}]
 readme = "README.md"

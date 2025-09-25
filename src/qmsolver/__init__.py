@@ -8,4 +8,4 @@ Schrödinger equation in one dimension.
 from .potentials import *
 from .tise import *
 
-__version__ = "0.1.0"
+__version__ = "0.1.4"

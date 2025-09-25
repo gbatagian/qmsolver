@@ -2,6 +2,18 @@
 
 **QMSolver** is a Python library for numerically solving the time-independent Schrödinger equation in one dimension. The library implements the finite differences method to compute energy eigenvalues and eigenfunctions for quantum mechanical systems with arbitrary potential energy functions.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Method Limitations](#method-limitations)
+- [Custom Potential Implementation](#custom-potential-implementation)
+- [SI Units](#si-units)
+- [Results Validation](#results-validation)
+- [Development and Contributing](#development-and-contributing)
+- [License](#license)
+- [References](#references)
+
 ## Installation
 
 ### PyPI Installation
@@ -317,7 +329,121 @@ E(1) = -0.29928660 eV
 E(2) = 0.04711572 eV
 ```
 
-# Development
+## Results Validation
+
+To validate the accuracy of `FDSolver` we can test it against a known analytical solution. A good test case is the **infinite square well** limit of a finite square well.
+
+When a finite square well has a **very large depth** it tends to the infinite square well with analytical solutions:
+
+$$E_n = n^2 \frac{\hbar^2 \pi^2}{2mL^2}$$
+
+where:
+- $n = 1, 2, 3, \dots$ (quantum number)
+- $L$ is the well width
+- $\hbar$ is the reduced Planck constant
+- $m$ is the particle mass
+
+Thus, we can solve a finite square well with **very large depth** (1e12 eV) using `FDSolver` and compare the results to the infinite square well formula. The finite well with very large depth eigenenergies should approach the infinite well eigenenergies.
+
+```python
+import numpy as np
+from scipy import constants
+
+from qmsolver.potentials import FiniteSquareWellPotential
+from qmsolver.tise import FDSolver
+
+well_depth_ev = 1e12  # Well depth in electron volts
+well_width_nm = 1.0  # Well width in nanometers
+
+# Convert to SI units
+well_depth_joules = well_depth_ev * constants.e  # Convert eV to Joules
+well_width_meters = well_width_nm * 1e-9  # Convert nm to meters
+
+# Spatial domain in meters
+x_min_m = -3e-9
+x_max_m = 3e-9
+
+solver = FDSolver(steps=10_000, x_min=x_min_m, x_max=x_max_m, n_lowest=5)
+
+# Set physical constants in SI units
+solver.h_bar = constants.hbar  # Reduced Planck's constant in J⋅s
+solver.m = constants.m_e  # Electron mass in kg
+
+potential = FiniteSquareWellPotential(
+    x_grid=solver.x_grid,
+    well_depth=well_depth_joules,
+    well_width=well_width_meters,
+)
+solver.potential_generator = potential
+
+solver.solve()
+solver.output()
+
+E_lowest_ev = np.array(solver.E_lowest) / constants.e
+print("\nEnergies in electron volts:")
+for i, energy in enumerate(E_lowest_ev):
+    infinite_square_Well_energy = (
+        (i + 1) ** 2
+        * constants.hbar**2
+        * np.pi**2
+        / (2 * solver.m * well_width_meters**2)
+    ) / constants.e
+
+    renormalized_energy = energy + well_depth_ev
+
+    error = (
+        100
+        * abs(renormalized_energy - infinite_square_Well_energy)
+        / infinite_square_Well_energy
+    )
+
+    print(
+        f"E({i}) = {renormalized_energy:.8f} eV | E_ISW({i}): {infinite_square_Well_energy:.8f} eV | Error: {error:.8f} %"
+    )
+```
+
+```bash
+****************************************
+
+-> 5 lowest energy states:
+
+      🔒   E(0)  =   -0.0000001602  (bound)
+      🔒   E(1)  =   -0.0000001602  (bound)
+      🔒   E(2)  =   -0.0000001602  (bound)
+      🔒   E(3)  =   -0.0000001602  (bound)
+      🔒   E(4)  =   -0.0000001602  (bound)
+
+****************************************
+
+Energies in electron volts:
+E(0) = 0.37585449 eV | E_ISW(0): 0.37603016 eV | Error: 0.04671698 %
+E(1) = 1.50329590 eV | E_ISW(1): 1.50412065 eV | Error: 0.05483270 %
+E(2) = 3.38232422 eV | E_ISW(2): 3.38427146 eV | Error: 0.05753794 %
+E(3) = 6.01281738 eV | E_ISW(3): 6.01648259 eV | Error: 0.06091950 %
+E(4) = 9.39514160 eV | E_ISW(4): 9.40075405 eV | Error: 0.05970214 %
+```
+
+Based on the comparison of the `FDSolver` results with the equivalent analytical solutions, we can conclude that the developed numerical method provides reliable results for bound state problems when using appropriate grid resolution. In the examined case above, the numerical results match the expected analytical values with an **error less than 0.1%**. It's worth noting that:
+
+- In principle, accuracy improves with higher grid resolution
+- However, accuracy depends on the specific grid spacing rather than just the total number of points. For instance, a grid with 6,000 steps might yield lower accuracy than one with 4,000 steps and a grid with 7,000 steps better from both. This behavior is problem-dependent and can vary between different potential functions.
+
+The table below shows the average error for the first five eigenenergies across different grid resolutions for the validation test case above:
+
+| Steps | Error (%) |
+|-------|-----------|
+| 1,000 | 0.62310486 |
+| 2,000 | 1.08952827 |
+| 3,000 | 0.45091440 |
+| 4,000 | 0.14786237 |
+| 5,000 | 0.44736513 |
+| 6,000 | 0.24246108 |
+| 7,000 | 0.08640829 |
+| 8,000 | 0.27421701 |
+| 9,000 | 0.17126452 |
+| 10,000 | 0.055941852 |
+
+# Development and Contributing
 
 ## Build and Test
 

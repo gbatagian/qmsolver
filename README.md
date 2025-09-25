@@ -10,6 +10,8 @@
 - [Custom Potential Implementation](#custom-potential-implementation)
 - [SI Units](#si-units)
 - [Results Validation](#results-validation)
+  - [Infinite Square Well Limit](#infinite-square-well-limit)
+  - [Harmonic Oscillator Validation](#harmonic-oscillator-validation)
 - [Development and Contributing](#development-and-contributing)
 - [License](#license)
 - [References](#references)
@@ -303,9 +305,9 @@ solver.plot(is_dimensionless=False, scale=1e19, energy_units="J")
 
 -> 3 lowest energy states:
 
-      🔒   E(0)  = -1.29761325e-19  (bound)
-      🔒   E(1)  = -4.79509995e-20  (bound)
-      🌊   E(2)  =  7.54877078e-21  (free) 
+      🔒   E(0)  = -1.29761325178584494211e-19  (bound)
+      🔒   E(1)  = -4.79509995005876440109e-20  (bound)
+      🌊   E(2)  = 7.54877077796044010905e-21  (free) 
 
 ****************************************
 ```
@@ -329,7 +331,9 @@ E(1) = -0.29928660 eV
 E(2) = 0.04711572 eV
 ```
 
-## Results Validation
+# Results Validation
+
+## Infinite Square Well Limit
 
 To validate the accuracy of `FDSolver` we can test it against a known analytical solution. A good test case is the **infinite square well** limit of a finite square well.
 
@@ -442,6 +446,112 @@ The table below shows the average error for the first five eigenenergies across 
 | 8,000 | 0.27421701 |
 | 9,000 | 0.17126452 |
 | 10,000 | 0.055941852 |
+
+# Harmonic Oscillator Validation
+
+To further validate the accuracy of `FDSolver`, we can test it against the analytical solution for the harmonic oscillator.
+
+The harmonic oscillator has exact analytical solutions:
+
+$$E_n = \hbar \omega \left(n + \frac{1}{2}\right)$$
+
+where:
+- $n = 0, 1, 2, \dots$ (quantum number)
+- $\omega$ is the angular frequency
+- $\hbar$ is the reduced Planck constant
+
+We can solve the harmonic oscillator potential using `FDSolver` and compare the numerical results to the analytical formula.
+
+```python
+import numpy as np
+from scipy import constants
+
+from qmsolver.potentials import HarmonicOscillatorPotential
+from qmsolver.tise import FDSolver
+
+x_min_m = -10e-9
+x_max_m = 10e-9
+
+solver = FDSolver(steps=10_000, x_min=x_min_m, x_max=x_max_m, n_lowest=5)
+
+# Set physical constants in SI units
+solver.h_bar = constants.hbar
+solver.m = constants.m_e
+
+# Create harmonic oscillator potential active over entire grid
+omega = 1e14  # Angular frequency (rad/s)
+m = constants.m_e
+potential = HarmonicOscillatorPotential(
+    x_grid=solver.x_grid,
+    spring_constant=m * omega**2,
+    grid_active_range=1,  # Active over entire grid
+)
+solver.potential_generator = potential
+
+solver.solve()
+solver.output()
+
+E_lowest_ev = np.array(solver.E_lowest) / constants.e
+print("\nEnergies in electron volts:")
+s = 0
+for i, energy in enumerate(E_lowest_ev):
+    analytical_energy = (constants.hbar * omega * (i + 0.5)) / constants.e
+    renormalized_energy = energy + np.abs(np.min(solver.potential)) / constants.e
+    error = 100 * abs(renormalized_energy - analytical_energy) / analytical_energy
+    s += error
+    print(
+        f"E({i}) = {renormalized_energy:.8f} eV | E_HO({i}): {analytical_energy:.8f} eV | Error: {error:.8f} %"
+    )
+
+print(f"\nAverage error: {s/len(E_lowest_ev):.8f} %")
+```
+
+```bash
+****************************************
+
+-> 5 lowest energy states:
+
+      🔒   E(0)  = -4.50196327746029571420e-19  (bound)
+      🔒   E(1)  = -4.39650614125021047605e-19  (bound)
+      🔒   E(2)  = -4.29104905059774577557e-19  (bound)
+      🔒   E(3)  = -4.18559200550213846300e-19  (bound)
+      🔒   E(4)  = -4.08013500595898489953e-19  (bound)
+
+****************************************
+
+Energies in electron volts:
+E(0) = 0.03291056 eV | E_HO(0): 0.03291060 eV | Error: 0.00010800 %
+E(1) = 0.09873173 eV | E_HO(1): 0.09873179 eV | Error: 0.00006480 %
+E(2) = 0.16455287 eV | E_HO(2): 0.16455299 eV | Error: 0.00007344 %
+E(3) = 0.23037398 eV | E_HO(3): 0.23037418 eV | Error: 0.00008948 %
+E(4) = 0.29619506 eV | E_HO(4): 0.29619538 eV | Error: 0.00010800 %
+```
+
+Based on the comparison of the `FDSolver` results with the analytical harmonic oscillator solutions, the numerical method demonstrates excellent accuracy for this potential as the numerical results match the expected analytical values with an **error less than 0.0001%** (6th decimal digit accuracy).
+
+The accuracy in this case is much higher than the infinite square well limit validation that took place in the previous section, because the harmonic oscillator potential definition does not approximate an ideal physical system (unlike the very deep finite square well, which was a limit approximation). In the lowest energy range of the harmonic oscillator, where boundary effects are almost non-existent, the numerical description is exceptionally accurate.
+
+The table below shows the average error for the first five eigenenergies across different grid resolutions for the harmonic oscillator test case above:
+
+| Steps | Error (%) |
+|-------|-----------|
+| 1,000 | 0.00889065 |
+| 2,000 | 0.00222036 |
+| 3,000 | 0.00098649 |
+| 4,000 | 0.00055481 |
+| 5,000 | 0.00035504 |
+| 6,000 | 0.00024654 |
+| 7,000 | 0.00018112 |
+| 8,000 | 0.00013867 |
+| 9,000 | 0.00010956 |
+| 10,000 | 0.00008874 |
+
+
+# Development and Contributing
+
+Based on the comparison of the `FDSolver` results with the analytical harmonic oscillator solutions, the numerical method demonstrates excellent accuracy for this potential as the numerical results match the expected analytical values with an **error less than 0.001%**.
+
+
 
 # Development and Contributing
 

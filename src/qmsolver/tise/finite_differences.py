@@ -207,8 +207,8 @@ class FDSolver:
                 stat_type = "(free)"
                 state_icon = "🌊"
 
-            if abs(e) < 1e-10 or abs(e) > 1e10:
-                energy_str = f"{e:15.8e}"
+            if abs(e) < 1e-6 or abs(e) > 1e6:
+                energy_str = f"{e:15.20e}"
             else:
                 energy_str = f"{e:15.10f}"
 

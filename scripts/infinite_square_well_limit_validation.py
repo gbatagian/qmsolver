@@ -15,7 +15,7 @@ well_width_meters = well_width_nm * 1e-9  # Convert nm to meters
 x_min_m = -3e-9
 x_max_m = 3e-9
 
-solver = FDSolver(steps=10_000, x_min=x_min_m, x_max=x_max_m, n_lowest=5)
+solver = FDSolver(steps=10_00, x_min=x_min_m, x_max=x_max_m, n_lowest=5)
 
 # Set physical constants in SI units
 solver.h_bar = constants.hbar  # Reduced Planck's constant in J⋅s

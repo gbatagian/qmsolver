@@ -172,6 +172,9 @@ class FDSolver:
 
         This method populates the `E_lowest` and `Psi_lowest` attributes with the `n_lowest` lowest
         energy eigenvalues and corresponding eigenvectors, sorted in ascending order.
+
+        Additionally, it populates the `E_bound` and `Psi_bound` attributes with the bound state
+        eigenvalues and eigenvectors (where E < V_asymptotic, the min potential value at the boundaries).
         """
         e_all, psi_all = sp.linalg.eigh(self.H_matrix)
 
@@ -185,7 +188,7 @@ class FDSolver:
         self.Psi_lowest = psi_all[:, : self.n_lowest]
 
         # Select bound states, i.e. eigenstates with E < V_asymptotic where V_asymptotic is the min potential
-        # value at the grid edges (towards infinity). For these states the wavefunctions decay exponentially toward the boundaries
+        # value at the grid edges (towards infinity). For these states the wavefunctions decay exponentially toward the boundaries.
         self.E_bound = self.E_lowest[self.E_lowest < self._v_asymptotic]
         self.Psi_bound = self.Psi_lowest[:, : len(self.E_bound)]
 

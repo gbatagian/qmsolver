@@ -547,10 +547,7 @@ The table below shows the average error for the first five eigenenergies across 
 | 10,000 | 0.00008874 |
 
 
-# Development and Contributing
-
 Based on the comparison of the `FDSolver` results with the analytical harmonic oscillator solutions, the numerical method demonstrates excellent accuracy for this potential as the numerical results match the expected analytical values with an **error less than 0.001%**.
-
 
 
 # Development and Contributing
